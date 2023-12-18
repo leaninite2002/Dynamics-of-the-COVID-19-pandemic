@@ -3,9 +3,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
+from scipy.integrate import solve_ivp
 
 N = 100 
 gamma = 0.1
+t = np.linspace(0, 200, 500)
+t_max=200
 
 def dSdt(S, I, beta):
     return -beta * S * I / N
@@ -17,19 +20,9 @@ def dRdt(I):
     return gamma * I
 
 def computeVariables(t, beta, I0, S0):
-    S = [S0]
-    I = [I0]
-    R = [N - S0 - I0]
-    for j in range(1, len(t)):
-        next_S = S[j-1] + dSdt(S[j-1], I[j-1], beta)
-        next_I = I[j-1] + dIdt(S[j-1], I[j-1], beta)
-        next_R = R[j-1] + dRdt(I[j-1])
-        S.append(next_S)
-        I.append(next_I)
-        R.append(next_R)
-    return S, I, R
-
-t = np.linspace(0, 200, 201)
+    sol=solve_ivp(fun=lambda t,x: [dSdt(x[0],x[1],beta),dIdt(x[0],x[1],beta),dRdt(x[1])],t_span=(0, t_max),y0=[S0,I0,N-S0-I0], t_eval=t, method='RK45')
+    S,I,R=sol.y
+    return S,I,R
 
 init_beta = 0.25
 init_I0 = 10
